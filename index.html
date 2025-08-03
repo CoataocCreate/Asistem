@@ -1,0 +1,1942 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Asphy VM Documentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/aos@2.3.4/dist/aos.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet"/>
+  <link href="https://unpkg.com/aos@2.3.4/dist/aos.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0c0c14;
+      --text-dark: #f5f5f5;
+      --accent-cyan: #4dd0e1;
+      --glass-bg: rgba(20, 20, 40, 0.4);
+      --glass-border: rgba(255, 255, 255, 0.1);
+      --subtle-glow: 0 0 8px rgba(77, 208, 225, 0.3);
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg-dark);
+      color: var(--text-dark);
+      margin: 0;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    h1, h2, h3 {
+      font-weight: 700;
+    }
+
+    .glass {
+      position: relative;
+      background: rgba(255, 255, 255, 0.04); /* more transparent */
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 1rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+      padding: 2rem;
+      overflow: hidden;
+      transition: all 0.3s ease-in-out;
+    }
+
+    /* ✨ Simulated light reflection */
+    .glass::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -50%;
+      width: 200%;
+      height: 100%;
+      background: linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0.3) 0%,
+        rgba(255, 255, 255, 0.05) 60%
+      );
+      pointer-events: none;
+      mix-blend-mode: screen;
+      opacity: 0.25;
+    }
+
+
+    .accent { color: var(--accent-cyan); }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(12px);
+      animation: fadeIn 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+
+    .sidebar {
+      position: sticky;
+      top: 1rem;
+      height: calc(100vh - 2rem);
+      overflow-y: auto;
+    }
+
+    .sidebar::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .sidebar::-webkit-scrollbar-thumb {
+      background: var(--accent-cyan);
+      border-radius: 2px;
+    }
+
+    .sidebar a {
+      transition: color 0.3s ease;
+    }
+
+    .sidebar a:hover {
+      color: var(--accent-cyan);
+    }
+
+    .code-block {
+      background: #1a1a2e;
+      border-radius: 0.5rem;
+      padding: 1.25rem;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.9rem;
+      overflow-x: auto;
+      position: relative;
+      transition: box-shadow 0.3s ease;
+    }
+
+    .code-block:hover {
+      box-shadow: var(--subtle-glow);
+    }
+
+    .code-block:hover .copy-btn {
+      opacity: 1;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--glass-border);
+      text-align: left;
+    }
+
+    th {
+      background: var(--glass-bg);
+      font-weight: 600;
+    }
+
+    .btn {
+      transition: all 0.3s ease;
+    }
+
+    .btn:hover {
+      background: var(--accent-cyan);
+      color: #000;
+      box-shadow: var(--subtle-glow);
+    }
+
+    .vm-visualizer {
+      background: #1a1a2e;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
+    }
+
+    .stack-slot, .bytecode-slot {
+      background: #2a2a40;
+      padding: 0.5rem;
+      margin: 0.25rem;
+      border-radius: 0.25rem;
+      transition: all 0.3s ease;
+    }
+
+    .stack-slot.active {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    .bytecode-slot.active {
+      background: var(--accent-cyan);
+      color: #000;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        position: static;
+        height: auto;
+        margin-bottom: 2rem;
+      }
+      .code-block, .table-container {
+        font-size: 0.85rem;
+      }
+      .hero-text {
+        font-size: 2.5rem;
+      }
+    }
+
+  md-filled-button, 
+  md-outlined-button, 
+  md-tonal-button, 
+  md-elevated-button {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif
+  }
+  </style>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Particle Canvas -->
+  <canvas class="fixed inset-0 z-[-10] opacity-50 pointer-events-none" id="particles"></canvas>
+
+  <!-- Hero Section -->
+  <section class="relative flex flex-col justify-center items-center text-center px-4 pt-20 pb-12">
+    <h1 class="text-5xl md:text-6xl font-extrabold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-600 tracking-tight">ASESTM</h1>
+    <p class="max-w-xl text-gray-300 text-base md:text-lg leading-relaxed mb-8 animate-[fadeIn_0.8s_ease-out_0.2s_forwards]">
+  A collection of Subjects by <span class="text-white font-semibold">Abdullah</span>
+</p>
+  </section>
+
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col md:flex-row gap-6">
+
+    <!-- Sidebar -->
+    <aside class="md:w-60 sidebar glass p-5 rounded-lg" data-aos="fade-right">
+  <nav class="space-y-3">
+    <details class="animate-dropdown group overflow-hidden">
+  <summary
+    class="flex justify-between items-center text-sm cursor-pointer list-none focus:outline-none px-2 py-1"
+  >
+    <span>Biology</span>
+    <span class="material-icons transition-transform duration-300 group-[open]:rotate-180">
+      expand_more
+    </span>
+  </summary>
+  <div class="dropdown-content pl-4 mt-2 space-y-2 text-xs">
+    <ul>
+      <li class="mb-[6px]">
+        <a href="#overview"
+          class="relative inline-block transition-all duration-300 hover:text-indigo-500 hover:scale-105">
+          <span class="hover-underline">Overview</span>
+        </a>
+      </li>
+      
+    <li class="text-[13px] mb-[6px]"><a href="#cell-biology">Understanding Cells</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#cell-details">Cell Structure (In‑Depth)</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#plant-cells">Plant Cells</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#neuron-cells">Neuron Cells</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#red-blood-cells">Blood Cells</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#stem-cells">Stem Cells</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#muscle-cells">Muscle Cells</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#DNA">DNA</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#genetics">Genetics</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#evolution">Evolution</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#photosynthesis">Photosynthesis</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#respiration">Respiration</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#cell-division">Cell Division</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#nervous-system">Nervous System</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#circulatory-system">Circulatory System</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#immune-system">Immune System</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#homeostasis">Homeostasis</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#endocrine-system">Endocrine System</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#human-reproduction">Human Reproduction</a></li>
+    <li class="text-[13px] mb-[6px]"><a href="#enzymes">Enzymes</a></li>
+
+
+
+    </ul>
+  </div>
+</details>
+  </nav>
+</aside>
+
+
+
+    <!-- Main Documentation -->
+    <main class="flex-1">
+      <!-- Overview -->
+      <section id="overview" class="mb-12" data-aos="fade-up">
+        <h2 class="text-4xl font-semibold text-white-600 tracking-tight mb-6 fade-in" style="animation-delay: 0.3s;">
+          Biology
+        </h2>
+
+        <p class="text-gray-100 text-lg leading-relaxed mb-4 fade-in" style="animation-delay: 0.2s;">
+        Biology is the scientific study of life and living organisms. It explores the structure, function, growth, origin, evolution, and distribution of life. Biology encompasses a vast array of fields, from the molecular level to ecosystems, and includes the study of organisms from bacteria to humans.
+      </p>
+    
+    <hr class="border-t border-gray-300 dark:border-gray-700">
+    <br>
+
+    <p class="text-gray-700 dark:text-gray-300 text-base mb-4 fade-in" style="animation-delay: 0.4s;">
+      <span class="text-xl font-semibold text-white-600 block mb-2">Key Areas of Biology</span>
+      <ul class="list-disc pl-6 space-y-2 marker:text-green-500">
+        <li><strong>Cell Biology</strong> – Study of the basic unit of life: the cell.</li>
+        <li><strong>Genetics</strong> – Study of heredity and variation in organisms.</li>
+        <li><strong>Evolution</strong> – Study of how species change over time.</li>
+        <li><strong>Ecology</strong> – Study of organisms and their interactions with each other and their environment.</li>
+        <li><strong>Physiology</strong> – Study of how the body and its systems function.</li>
+        <li><strong>Anatomy</strong> – Study of the physical structure of organisms.</li>
+        <li><strong>Microbiology</strong> – Study of microscopic organisms like bacteria and viruses.</li>
+        <li><strong>Botany</strong> – Study of plants.</li>
+        <li><strong>Zoology</strong> – Study of animals.</li>
+      </ul>
+    </p>
+
+    </section>
+
+    <hr class="border-t border-gray-300 dark:border-gray-700">
+    <br>
+
+   
+    <section id="cell-biology" class="mb-12" data-aos="fade-up"> 
+  <h3 class="text-3xl font-semibold text-green-500 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    Understanding Cells
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Cells are the tiny units that make up every living thing on Earth. They are like the building blocks of life. Some living things, like bacteria, are made of just one cell. Others, like humans, are made of trillions of cells working together.
+  </p>
+
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Types of Cells</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-400 text-gray-200">
+      <li>
+        <strong>Prokaryotic Cells:</strong> Very simple cells. They do <em>not</em> have a nucleus. Their DNA floats freely inside. Example: <strong>bacteria</strong>.
+      </li>
+      <li>
+        <strong>Eukaryotic Cells:</strong> More advanced cells. They <em>do</em> have a nucleus and other small parts called <em>organelles</em>. Found in <strong>animals, plants, fungi, and protists</strong>.
+      </li>
+    </ul>
+  </div>
+
+  <div class="flex flex-col md:flex-row justify-center items-start gap-6 mb-6 fade-in" style="animation-delay: 0.45s;">
+
+  <!-- Prokaryotic cell -->
+  <figure class="bg-white p-4 rounded-lg shadow-lg max-w-md w-full md:w-1/2">
+    <img src="bio/prokaryote_cell.svg"
+         alt="Diagram of a prokaryotic cell"
+         class="w-full h-auto border border-gray-300 rounded" />
+    <figcaption class="text-sm text-gray-700 text-center mt-2">
+      Diagram of a Prokaryotic Cell
+    </figcaption>
+  </figure>
+
+  <!-- Eukaryotic (animal) cell -->
+  <figure class="bg-gray-900 p-4 rounded-lg shadow-lg max-w-md w-full md:w-1/2">
+    <img src="bio/animal_cell.jpg"
+         alt="Diagram of an animal (eukaryotic) cell"
+         class="w-full h-auto border border-gray-600 rounded" />
+    <figcaption class="text-sm text-gray-300 text-center mt-2">
+      Diagram of an Animal Cell (Eukaryotic)
+    </figcaption>
+  </figure>
+
+</div>
+
+
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.55s;">
+    <h4 class="text-xl font-semibold text-white mb-2">What’s Inside a Cell?</h4>
+    <p class="text-gray-100 text-base leading-relaxed">
+      Eukaryotic cells have special parts inside them called <strong>organelles</strong>. Each organelle has a specific job:
+    </p>
+    <ul class="list-disc pl-6 mt-3 space-y-2 marker:text-green-400 text-gray-200">
+      <li><strong>Nucleus:</strong> The "brain" of the cell. It stores DNA (instructions for life).</li>
+      <li><strong>Mitochondria:</strong> The "powerhouse." It gives the cell energy.</li>
+      <li><strong>Cell Membrane:</strong> A protective skin that controls what enters or leaves the cell.</li>
+      <li><strong>Cytoplasm:</strong> A jelly-like fluid that fills the cell and holds everything in place.</li>
+      <li><strong>Ribosomes:</strong> Tiny machines that make proteins the cell needs.</li>
+      <li><strong>Endoplasmic Reticulum (ER):</strong> A network of tubes that helps move materials.</li>
+      <li><strong>Golgi Apparatus:</strong> Packs and ships proteins and other materials.</li>
+    </ul>
+  </div>
+
+    <p class="text-gray-100 text-base leading-relaxed fade-in" style="animation-delay: 0.6s;">
+      Each part of a cell works like a team to keep the cell alive and working properly. Whether it’s a simple one-cell bacteria or a human made of trillions of cells—cells are essential for all life!
+    </p>
+  </section>
+
+
+  <hr class="border-t border-gray-300 dark:border-gray-700">
+
+    
+  <section id="cell-details" class="mb-12 mt-16" data-aos="fade-up">
+    <h3 class="text-3xl font-semibold text-green-500 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+      Cell Structure and Function (In-Depth)
+    </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Cells can be thought of as tiny factories. Each part of a cell, called an <strong>organelle</strong>, has a special function. Together, they keep the cell alive and working properly.
+  </p>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 fade-in" style="animation-delay: 0.4s;">
+    <!-- Nucleus -->
+    <div class="glass p-4 rounded-lg">
+      <h4 class="text-lg font-semibold text-white mb-2">Nucleus</h4>
+      <p class="text-gray-100 text-sm">The control center of the cell. It stores DNA and controls cell activities.</p>
+    </div>
+
+    <!-- Mitochondria -->
+    <div class="glass p-4 rounded-lg">
+      <h4 class="text-lg font-semibold text-white mb-2">Mitochondria</h4>
+      <p class="text-gray-100 text-sm">Known as the powerhouse of the cell. It turns nutrients into energy.</p>
+    </div>
+
+    <!-- Ribosomes -->
+    <div class="glass p-4 rounded-lg">
+      <h4 class="text-lg font-semibold text-white mb-2">Ribosomes</h4>
+      <p class="text-gray-100 text-sm">These tiny organelles build proteins by following instructions from the DNA.</p>
+    </div>
+
+    <!-- Endoplasmic Reticulum -->
+    <div class="glass p-4 rounded-lg">
+      <h4 class="text-lg font-semibold text-white mb-2">Endoplasmic Reticulum (ER)</h4>
+      <p class="text-gray-100 text-sm">A network of membranes that helps transport materials through the cell.</p>
+    </div>
+
+    <!-- Golgi Apparatus -->
+    <div class="glass p-4 rounded-lg">
+      <h4 class="text-lg font-semibold text-white mb-2">Golgi Apparatus</h4>
+      <p class="text-gray-100 text-sm">It packages proteins and other products and sends them to their destination.</p>
+    </div>
+
+    <!-- Lysosomes -->
+    <div class="glass p-4 rounded-lg">
+      <h4 class="text-lg font-semibold text-white mb-2">Lysosomes</h4>
+      <p class="text-gray-100 text-sm">They break down waste and old cell parts—like the recycling center of the cell.</p>
+    </div>
+
+    <!-- Cytoplasm -->
+    <div class="glass p-4 rounded-lg">
+      <h4 class="text-lg font-semibold text-white mb-2">Cytoplasm</h4>
+      <p class="text-gray-100 text-sm">A jelly-like fluid that fills the cell. All organelles float in it.</p>
+    </div>
+
+    <!-- Cell Membrane -->
+    <div class="glass p-4 rounded-lg">
+      <h4 class="text-lg font-semibold text-white mb-2">Cell Membrane</h4>
+      <p class="text-gray-100 text-sm">It surrounds the cell and controls what enters and exits.</p>
+    </div>
+  </div>
+
+  <!-- Cell cycle & processes -->
+  <div class="glass p-6 rounded-lg mt-8 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Important Cell Processes</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-400 text-gray-200">
+      <li><strong>Cell Division:</strong> Cells reproduce by dividing (mitosis for body cells, meiosis for sex cells).</li>
+      <li><strong>Osmosis and Diffusion:</strong> Ways substances move in and out of cells without using energy.</li>
+      <li><strong>Active Transport:</strong> Movement of substances using energy (ATP).</li>
+      <li><strong>Photosynthesis:</strong> In plant cells, chloroplasts use sunlight to make food (glucose).</li>
+      <li><strong>Cell Respiration:</strong> Converts glucose into usable energy (ATP) in mitochondria.</li>
+    </ul>
+  </div>
+
+  <!-- Optional additional image -->
+  <figure class="my-8 fade-in" style="animation-delay: 0.6s;">
+    <img src="bio/cell_parts_labeled.webp"
+         alt="Labeled diagram of a cell with organelles"
+         class="rounded-lg shadow-lg max-w-3xl w-full h-auto mx-auto border border-gray-600" />
+    <figcaption class="text-sm text-gray-400 text-center mt-2">
+      Image: Labeled diagram of a cell and its major parts
+    </figcaption>
+  </figure>
+
+  <!-- Summary -->
+  <p class="text-gray-100 text-base leading-relaxed fade-in" style="animation-delay: 0.65s;">
+    Understanding cells helps us understand how life works—from the smallest bacteria to the largest animals. Each cell type, organelle, and process plays a vital role in growth, health, and survival.
+  </p>
+</section>
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+<br>
+
+<section id="plant-cells" class="mb-12" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-green-500 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    Plant Cells
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Plant cells are a type of eukaryotic cell, meaning they have a nucleus and organelles. But unlike animal cells, plant cells have some extra features that help them live and grow as part of a plant.
+  </p>
+
+  <!-- Plant Cell Image -->
+  <figure class="mb-6 fade-in bg-white p-4 rounded-lg shadow-lg max-w-md mx-auto" style="animation-delay: 0.35s;">
+    <img src="bio/plant_cell.svg"
+         alt="Diagram of a plant cell"
+         class="w-full h-auto border border-gray-300 rounded" />
+    <figcaption class="text-sm text-gray-700 text-center mt-2">
+      Image: Diagram of a plant cell (with labeled parts)
+    </figcaption>
+  </figure>
+
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Key Parts of a Plant Cell</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-400 text-gray-200">
+      <li><strong>Cell Wall:</strong> A tough outer layer made of cellulose that gives the plant structure and support.</li>
+      <li><strong>Chloroplasts:</strong> Organelles that contain chlorophyll. They let the plant make its own food through photosynthesis.</li>
+      <li><strong>Large Vacuole:</strong> A big storage space filled with cell sap. It helps keep the cell firm.</li>
+      <li><strong>Nucleus:</strong> Controls what the cell does and stores DNA.</li>
+      <li><strong>Mitochondria:</strong> Produces energy from food.</li>
+      <li><strong>Cytoplasm:</strong> Jelly-like fluid where reactions happen.</li>
+      <li><strong>Cell Membrane:</strong> Controls what enters and exits the cell, found just inside the cell wall.</li>
+    </ul>
+  </div>
+
+  <p class="text-gray-100 text-base leading-relaxed fade-in" style="animation-delay: 0.5s;">
+    Thanks to structures like chloroplasts and the cell wall, plant cells can turn sunlight into energy and grow upright without bones. These differences are what allow plants to survive and thrive in their environments.
+  </p>
+</section>
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+<section id="neuron-cells" class="mb-12" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-green-500 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    Neuron Cells (Nerve Cells)
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Neurons, or nerve cells, are special cells in the nervous system. They send and receive messages between different parts of the body and the brain. Without neurons, you wouldn’t be able to move, feel, think, or react.
+  </p>
+
+  <!-- Neuron Cell Image -->
+  <figure class="mb-6 fade-in bg-white p-4 rounded-lg shadow-lg max-w-md mx-auto" style="animation-delay: 0.35s;">
+    <img src="bio/neuron_cell.png"
+         alt="Diagram of a neuron cell"
+         class="w-full h-auto border border-gray-300 rounded" />
+    <figcaption class="text-sm text-gray-700 text-center mt-2">
+      Image: Diagram of a neuron (nerve cell)
+    </figcaption>
+  </figure>
+
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Parts of a Neuron</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-400 text-gray-200">
+      <li><strong>Cell Body (Soma):</strong> The main part of the neuron. It contains the nucleus and controls cell activity.</li>
+      <li><strong>Dendrites:</strong> Branch-like structures that receive signals from other neurons.</li>
+      <li><strong>Axon:</strong> A long tail that carries signals away from the cell body to other neurons or muscles.</li>
+      <li><strong>Myelin Sheath:</strong> A protective coating around the axon that helps messages travel faster.</li>
+      <li><strong>Axon Terminals:</strong> The ends of the axon where the signal is passed to the next cell.</li>
+      <li><strong>Synapse:</strong> The tiny gap between two neurons where chemical signals are sent.</li>
+    </ul>
+  </div>
+
+  <p class="text-gray-100 text-base leading-relaxed fade-in" style="animation-delay: 0.5s;">
+    Neurons work like wires in your body, carrying signals at incredible speeds. There are billions of neurons in your brain alone, all connected in complex networks that help you sense, think, move, and learn.
+  </p>
+</section>
+
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+
+<section id="red-blood-cells" class="mb-12 mt-16" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-red-400 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    Red Blood Cells (RBCs)
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Red blood cells (also called erythrocytes) are specialized cells in the blood that carry oxygen from the lungs to the rest of the body and bring carbon dioxide back to the lungs to be exhaled. They are the most abundant type of blood cell and essential for life.
+  </p>
+
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Key Features of Red Blood Cells</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-red-300 text-gray-200">
+      <li><strong>Biconcave Shape:</strong> Increases surface area for gas exchange and allows flexibility to move through narrow blood vessels.</li>
+      <li><strong>No Nucleus:</strong> Mature RBCs lose their nucleus to make more room for hemoglobin (oxygen-carrying protein).</li>
+      <li><strong>Rich in Hemoglobin:</strong> Each RBC contains about 270 million molecules of hemoglobin, which binds to oxygen and gives blood its red color.</li>
+      <li><strong>Short Lifespan:</strong> They live about 120 days and are then broken down by the liver and spleen.</li>
+      <li><strong>Produced in Bone Marrow:</strong> RBCs are made in the red bone marrow in large bones like the femur and pelvis.</li>
+    </ul>
+  </div>
+
+  <!-- Function Summary -->
+  <div class="glass p-6 rounded-lg mt-8 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Function of Red Blood Cells</h4>
+    <p class="text-gray-100 text-base leading-relaxed">
+      RBCs travel through blood vessels to deliver oxygen to body tissues and remove carbon dioxide. The oxygen binds to hemoglobin in the lungs and is released where needed. Carbon dioxide, a waste product, is carried back to the lungs for exhalation.
+    </p>
+  </div>
+
+  <!-- Quick Facts -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 fade-in" style="animation-delay: 0.7s;">
+    <div class="glass p-4 rounded-lg">
+      <h4 class="text-lg font-semibold text-white mb-2">Quick Facts</h4>
+      <ul class="list-disc pl-5 space-y-1 text-gray-200 marker:text-red-400">
+        <li>Average count: 4.7–6.1 million RBCs/μL in men, 4.2–5.4 million in women</li>
+        <li>Hemoglobin reference: ~13.8–17.2 g/dL (men), ~12.1–15.1 g/dL (women)</li>
+        <li>They make up ~40–45% of your blood volume</li>
+      </ul>
+    </div>
+    <div class="glass p-4 rounded-lg">
+      <h4 class="text-lg font-semibold text-white mb-2">Diseases Related to RBCs</h4>
+      <ul class="list-disc pl-5 space-y-1 text-gray-200 marker:text-red-400">
+        <li><strong>Anemia:</strong> Low RBC count or hemoglobin levels → fatigue, weakness</li>
+        <li><strong>Sickle Cell Disease:</strong> Abnormal shape affects oxygen delivery</li>
+        <li><strong>Polycythemia:</strong> Too many RBCs → thicker blood, risk of clots</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Final Note -->
+  <p class="text-gray-100 text-base leading-relaxed mt-8 fade-in" style="animation-delay: 0.8s;">
+    Red blood cells are a vital part of the circulatory system. Their unique shape, rich hemoglobin content, and constant turnover make them one of the most fascinating and essential cells in the human body.
+  </p>
+</section>
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+<section id="stem-cells" class="mb-16 mt-16" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-pink-400 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    Stem Cells
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Stem cells are special cells in the body that have the power to develop into many different types of cells. Think of them like the body's “raw materials.” When a stem cell divides, it can either stay a stem cell or become another kind of cell — like a muscle cell, brain cell, or blood cell.
+  </p>
+
+  <!-- What Makes Stem Cells Special -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">What Makes Stem Cells Special?</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-pink-300 text-gray-200">
+      <li><strong>Self-renewal:</strong> They can make copies of themselves over and over again.</li>
+      <li><strong>Differentiation:</strong> They can turn into other types of cells with specific jobs.</li>
+    </ul>
+  </div>
+
+  <!-- Types of Stem Cells -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Types of Stem Cells</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-pink-300 text-gray-100">
+      <li><strong>Embryonic Stem Cells:</strong> Found in early embryos. They can turn into any type of cell in the body.</li>
+      <li><strong>Adult Stem Cells:</strong> Found in organs like bone marrow. They help repair the body but are more limited in what they can become.</li>
+      <li><strong>Induced Pluripotent Stem Cells (iPSCs):</strong> Adult cells changed in a lab to act like embryonic stem cells.</li>
+    </ul>
+  </div>
+
+  <!-- Uses of Stem Cells -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Why Are Stem Cells Important?</h4>
+    <p class="text-gray-100 mb-4">
+      Scientists and doctors use stem cells to:
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-pink-300 text-gray-100">
+      <li>Treat diseases like leukemia through bone marrow transplants</li>
+      <li>Grow new tissues or organs in labs</li>
+      <li>Understand how diseases develop</li>
+      <li>Test new medicines safely on lab-grown cells</li>
+    </ul>
+  </div>
+
+  <!-- Image: Stem Cell Diagram -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.7s;">
+    <figure class="bg-gray-900 p-4 rounded-lg shadow-lg">
+      <img src="bio/stemcell.png" 
+           alt="Diagram showing different types of stem cells and what they can become" 
+           class="w-full h-auto border border-gray-700 rounded size-100" />
+      <figcaption class="text-sm text-gray-400 text-center mt-2">
+        Stem cells can become many kinds of cells, like blood, nerve, or muscle cells.
+      </figcaption>
+    </figure>
+  </div>
+
+  <!-- Challenges & Ethics -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.8s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Challenges and Ethics</h4>
+    <p class="text-gray-100">
+      Some people have ethical concerns about using embryonic stem cells because they come from early-stage embryos. Scientists are now using iPSCs more often to avoid this issue. Also, using stem cells safely in treatments still requires a lot of research.
+    </p>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-8 fade-in" style="animation-delay: 0.9s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-pink-300 text-gray-100">
+      <li>Stem cells are cells that can become many other types of cells.</li>
+      <li>They help repair, grow, and develop body tissues.</li>
+      <li>There are embryonic, adult, and lab-created stem cells (iPSCs).</li>
+      <li>Stem cells are used in medicine and research, with ongoing ethical discussions.</li>
+    </ul>
+  </div>
+
+  <!-- Closing Note -->
+  <p class="text-gray-100 text-base leading-relaxed mt-6 fade-in" style="animation-delay: 1s;">
+    Stem cells are one of the most exciting areas of biology and medicine today. They offer hope for treating diseases and repairing the body in ways we never imagined before.
+  </p>
+</section>
+
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+
+
+<section id="muscle-cells" class="mb-16 mt-16" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-pink-400 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    Muscle Cells
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Muscle cells are special cells that make up your muscles and help your body move. They are long, thin, and stretchy like elastic bands. These cells can contract (shorten) and relax, which allows movement in the body — from walking and talking to blinking and breathing.
+  </p>
+
+  <!-- Types of Muscle Cells -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Types of Muscle Cells</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-pink-300 text-gray-200">
+      <li><strong>Skeletal Muscle:</strong> Moves your bones. You control these muscles (voluntary).</li>
+      <li><strong>Cardiac Muscle:</strong> Found only in the heart. It beats on its own (involuntary).</li>
+      <li><strong>Smooth Muscle:</strong> Found in organs like the stomach and blood vessels. Works without you thinking about it (involuntary).</li>
+    </ul>
+  </div>
+
+  <!-- Structure of a Muscle Cell -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Structure of Muscle Cells</h4>
+    <p class="text-gray-100 mb-4">
+      Muscle cells (also called muscle fibers) have some unique features:
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-pink-300 text-gray-100">
+      <li>They are long and tube-shaped.</li>
+      <li>Contain many nuclei (especially skeletal muscle cells).</li>
+      <li>Have special proteins like <strong>actin</strong> and <strong>myosin</strong> that slide over each other to cause movement.</li>
+    </ul>
+  </div>
+
+  <!-- Muscle Cell Function Image -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.6s;">
+    <figure class="bg-gray-900 p-4 rounded-lg shadow-lg">
+      <img src="bio/muscle.png" 
+           alt="Diagram of skeletal muscle fiber structure" 
+           class="w-full max-w-2xl mx-auto h-auto border border-gray-700 rounded shadow-lg" />
+      <figcaption class="text-sm text-gray-400 text-center mt-2">
+        Different types of muscle cells help the body move, pump blood, and digest food.
+      </figcaption>
+    </figure>
+  </div>
+
+  <!-- How Muscle Cells Work -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.7s;">
+    <h4 class="text-xl font-semibold text-white mb-2">How Do Muscle Cells Work?</h4>
+    <p class="text-gray-100">
+      Muscle cells receive signals from the brain or body. These signals cause actin and myosin proteins inside the cell to slide over one another, making the muscle cell shorter. This is called <strong>contraction</strong>. When the signal stops, the muscle relaxes.
+    </p>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-8 fade-in" style="animation-delay: 0.8s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-pink-300 text-gray-100">
+      <li>Muscle cells help the body move and function.</li>
+      <li>There are 3 main types: skeletal, cardiac, and smooth.</li>
+      <li>They work by contracting and relaxing using special proteins.</li>
+      <li>Each type of muscle cell has a specific job in the body.</li>
+    </ul>
+  </div>
+
+  <!-- Closing Note -->
+  <p class="text-gray-100 text-base leading-relaxed mt-6 fade-in" style="animation-delay: 0.9s;">
+    Without muscle cells, we wouldn’t be able to move, breathe, or keep our hearts beating. They are strong, hardworking cells that keep your body going every moment of the day!
+  </p>
+</section>
+
+
+
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+
+
+
+<section id="DNA" class="bg-gray-900 text-gray-200 p-6 rounded-xl shadow-xl space-y-8">
+
+  <!-- What is DNA -->
+  <div>
+    <p class="text-gray-300">
+      DNA (Deoxyribonucleic Acid) is a molecule that carries the instructions an organism needs to grow, develop, survive, and reproduce. It is found in nearly every cell of every living thing and acts like a blueprint for building and running an organism.
+    </p>
+  </div>
+
+  <!-- Composition -->
+  <div>
+    <h3 class="text-2xl font-semibold text-white mb-2">What is DNA Made Of?</h3>
+    <p class="text-gray-300 mb-2">
+      DNA is made of small building blocks called <strong>nucleotides</strong>. Each nucleotide has three parts:
+    </p>
+    <ul class="list-disc ml-6 text-gray-300">
+      <li>A phosphate group</li>
+      <li>A sugar molecule (deoxyribose)</li>
+      <li>A nitrogen base: Adenine (A), Thymine (T), Cytosine (C), or Guanine (G)</li>
+    </ul>
+    <p class="text-gray-300 mt-2">In DNA, base pairs always follow the same rules: A pairs with T, and C pairs with G.</p>
+  </div>
+
+  <!-- Structure -->
+  <div>
+    <h3 class="text-2xl font-semibold text-white mb-2">Structure: The Double Helix</h3>
+    <p class="text-gray-300">
+      DNA has a unique double helix shape, like a twisted ladder. The two sides of the ladder are made of sugar and phosphate, while the rungs are made of base pairs held together by hydrogen bonds.
+    </p>
+  </div>
+
+  <!-- Genes and Chromosomes -->
+  <div>
+    <h3 class="text-2xl font-semibold text-white mb-2">Genes and Chromosomes</h3>
+    <p class="text-gray-300">
+      A <strong>gene</strong> is a segment of DNA that contains instructions for building a specific protein. Proteins determine traits such as hair color, height, or blood type. DNA is tightly packed into structures called <strong>chromosomes</strong>. Humans have 23 pairs of chromosomes in each cell.
+    </p>
+  </div>
+
+  <!-- DNA Function -->
+  <div>
+    <h3 class="text-2xl font-semibold text-white mb-2">What Does DNA Do?</h3>
+    <p class="text-gray-300">
+      DNA contains instructions for building proteins, which are essential for the structure and function of cells. These proteins regulate everything from metabolism to immune response and growth.
+    </p>
+  </div>
+
+  <!-- Replication -->
+  <div>
+    <h3 class="text-2xl font-semibold text-white mb-2">DNA Replication</h3>
+    <p class="text-gray-300">
+      DNA replication is the process of copying DNA before a cell divides. This ensures that each new cell receives an exact copy of the genetic information.
+    </p>
+    <ul class="list-decimal ml-6 text-gray-300 mt-2">
+      <li>The DNA molecule unwinds and separates into two strands.</li>
+      <li>New nucleotides pair with the exposed bases on each strand.</li>
+      <li>Two identical DNA molecules are formed, each with one old and one new strand.</li>
+    </ul>
+  </div>
+
+  <!-- Importance -->
+  <div>
+    <h3 class="text-2xl font-semibold text-white mb-2">Why is DNA Important?</h3>
+    <ul class="list-disc ml-6 text-gray-300">
+      <li>It carries genetic information from parents to offspring.</li>
+      <li>It controls cell function through the production of proteins.</li>
+      <li>Mutations in DNA can lead to genetic disorders or evolution over time.</li>
+      <li>Understanding DNA allows advances in medicine, forensics, and biotechnology.</li>
+    </ul>
+  </div>
+
+  <!-- Summary Box -->
+  <div class="bg-gray-800 p-4 mt-6 rounded-md border border-gray-700">
+    <p class="text-gray-300 text-sm">
+      In summary, DNA is a molecule that stores the instructions for life. Its unique structure allows it to replicate accurately and produce the proteins that shape all living things.
+    </p>
+  </div>
+</section>
+
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+
+<section id="genetics" class="mb-16 mt-16" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-purple-400 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    Genetics
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Genetics is the study of how traits are passed from parents to their children. It explains why you might have your mom’s eye color or your dad’s curly hair. The information that controls traits is stored in something called <strong>DNA</strong>, and parts of that DNA are called <strong>genes</strong>.
+  </p>
+
+  <!-- DNA & Genes -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">What is DNA?</h4>
+    <p class="text-gray-100 mb-4">
+      DNA stands for <strong>Deoxyribonucleic Acid</strong>. It's a long molecule that looks like a twisted ladder (called a double helix). DNA carries instructions for building and running your body.
+    </p>
+
+    <h4 class="text-xl font-semibold text-white mb-2">What are Genes?</h4>
+    <p class="text-gray-100">
+      Genes are short sections of DNA. Each gene contains instructions to make a protein, which helps your body function. For example, a gene might control how tall you are or what color your eyes are.
+    </p>
+  </div>
+
+  <!-- Chromosomes -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-2">What are Chromosomes?</h4>
+    <p class="text-gray-100">
+      Chromosomes are long strands of DNA found in the nucleus of each cell. Humans have <strong>46 chromosomes</strong> in total — 23 from the mother and 23 from the father. Each chromosome contains many genes.
+    </p>
+  </div>
+
+  <!-- Inheritance -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-2">How Are Traits Inherited?</h4>
+    <p class="text-gray-100 mb-4">
+      You inherit <strong>one copy of each gene from your mother</strong> and <strong>one from your father</strong>. These gene pairs decide your traits. Some traits are controlled by a single gene, while others are influenced by many genes.
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-purple-300 text-gray-200">
+      <li><strong>Dominant genes</strong> show their effect even if there's only one copy (e.g., brown eyes).</li>
+      <li><strong>Recessive genes</strong> only show their effect if you get two copies (one from each parent), like blue eyes.</li>
+    </ul>
+  </div>
+
+  <!-- Punnett Square -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.7s;">
+    <h4 class="text-xl font-semibold text-white mb-2">What is a Punnett Square?</h4>
+    <p class="text-gray-100 mb-4">
+      A Punnett Square is a simple tool that helps predict what traits a child might inherit based on their parents' genes. It's like a chart that shows possible combinations of alleles (gene versions).
+    </p>
+    <figure class="bg-gray-500 p-4 rounded-lg shadow-lg max-w-xs mx-auto">
+  <img src="bio/punnett_square.png" 
+       alt="Punnett square example for dominant and recessive traits" 
+       class="w-full h-auto border border-gray-700 rounded" />
+  <figcaption class="text-sm text-gray-200 text-center mt-2">
+    Example: Brown eyes (B) are dominant. Blue eyes (b) are recessive. This Punnett square shows possible outcomes for a Bb × Bb pair.
+  </figcaption>
+</figure>
+
+  </div>
+
+  <!-- Mutation -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.8s;">
+    <h4 class="text-xl font-semibold text-white mb-2">What is a Mutation?</h4>
+    <p class="text-gray-100">
+      A mutation is a change in the DNA sequence. It can happen randomly or be caused by things like radiation or chemicals. Some mutations have no effect, while others can cause diseases or create new traits.
+    </p>
+  </div>
+
+  <!-- Why is Genetics Important? -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.9s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Why is Genetics Important?</h4>
+    <p class="text-gray-100">
+      Genetics helps doctors understand diseases, helps farmers grow better crops, and even explains why siblings look different. Scientists can study genetics to develop new medicines and understand evolution.
+    </p>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-8 fade-in" style="animation-delay: 1s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-purple-300 text-gray-100">
+      <li>Genetics is the science of how traits are inherited through genes.</li>
+      <li>DNA → Genes → Chromosomes → Traits.</li>
+      <li>We inherit one set of genes from each parent.</li>
+      <li>Some traits are dominant, others are recessive.</li>
+      <li>Punnett squares predict possible combinations of traits.</li>
+      <li>Mutations are changes in DNA that can affect traits.</li>
+    </ul>
+  </div>
+
+  <!-- Final Note -->
+  <p class="text-gray-100 text-base leading-relaxed mt-6 fade-in" style="animation-delay: 1.1s;">
+    Genetics is one of the most exciting fields in science because it helps explain how life works and how all living things are connected. Learning about it gives you insight into your own body — and the future of medicine!
+  </p>
+</section>
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+<section id="evolution" class="mb-20 mt-20" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-green-400 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    Evolution
+  </h3>
+
+  <!-- Introduction -->
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Evolution is the process by which living things change over time. It explains how simple life forms developed into the amazing variety of plants, animals, and humans we see today. Evolution is one of the most important ideas in biology, and it helps us understand how life on Earth began and changed over billions of years.
+  </p>
+
+  <!-- Section: What Is Evolution? -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">What Is Evolution?</h4>
+    <p class="text-gray-100">
+      Evolution means that living organisms slowly change over long periods of time. These changes happen in their DNA and are passed down from parents to offspring. Over millions of years, these tiny changes can result in new species!
+    </p>
+  </div>
+
+  <!-- Section: Natural Selection -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Natural Selection – Survival of the Fittest</h4>
+    <p class="text-gray-100 mb-4">
+      Natural selection is the main way evolution happens. It was discovered by Charles Darwin. Here's how it works:
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li>Every species has small differences (called <strong>variations</strong>).</li>
+      <li>Some variations help an organism survive better in its environment.</li>
+      <li>Organisms with helpful traits live longer and have more babies.</li>
+      <li>These helpful traits get passed on, and over time, the species changes.</li>
+    </ul>
+  </div>
+
+  <!-- Section: Evidence for Evolution -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Evidence for Evolution</h4>
+    <p class="text-gray-100 mb-4">
+      Scientists have found many clues that evolution is real. These include:
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-100">
+      <li><strong>Fossils:</strong> Show how animals and plants have changed over time.</li>
+      <li><strong>Comparing DNA:</strong> All living things have DNA. The more similar the DNA, the closer the relationship.</li>
+      <li><strong>Embryos:</strong> Many animals look very similar when they are embryos (early stages of development).</li>
+      <li><strong>Homologous structures:</strong> Similar body parts in different animals (like human arms and bat wings) suggest common ancestors.</li>
+    </ul>
+  </div>
+
+  <!-- Section: Evolution in Action -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.7s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Evolution in Action</h4>
+    <p class="text-gray-100 mb-4">
+      Evolution isn’t just in the past — it’s happening today! For example:
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-100">
+      <li><strong>Antibiotic resistance:</strong> Bacteria can evolve to resist medicine, making infections harder to treat.</li>
+      <li><strong>Insects and pesticides:</strong> Some bugs evolve to survive chemicals meant to kill them.</li>
+      <li><strong>Animals in cities:</strong> Some birds and animals are adapting to city life, with new behaviors and features.</li>
+    </ul>
+  </div>
+
+  <!-- Section: Charles Darwin -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.8s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Charles Darwin – Father of Evolution</h4>
+    <p class="text-gray-100">
+      Charles Darwin was a scientist who came up with the idea of natural selection. He went on a famous trip around the world on a ship called <em>HMS Beagle</em> and studied animals on the Galápagos Islands. In 1859, he wrote a book called <em>"On the Origin of Species"</em> that changed the world forever.
+    </p>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-8 fade-in" style="animation-delay: 1s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-100">
+      <li>Evolution is how living things change over time.</li>
+      <li>Natural selection is the main way evolution happens — useful traits are passed on.</li>
+      <li>Fossils, DNA, and embryos all provide strong evidence for evolution.</li>
+      <li>It helps explain the huge variety of life on Earth today.</li>
+    </ul>
+  </div>
+
+  <!-- Closing Note -->
+  <p class="text-gray-100 text-base leading-relaxed mt-6 fade-in" style="animation-delay: 1.1s;">
+    Evolution is like a long story written by nature. Every living thing on Earth is part of this story — including you!
+  </p>
+</section>
+
+<section id="photosynthesis" class="mb-20 mt-20" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-green-400 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    Photosynthesis
+  </h3>
+
+  <!-- Introduction -->
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Photosynthesis is the process by which green plants, algae, and some bacteria use sunlight to make their own food. It is essential for life on Earth because it produces the oxygen we breathe and forms the base of most food chains. This process takes place mainly in the leaves of plants, inside special cell structures called chloroplasts.
+  </p>
+
+  <!-- What Happens in Photosynthesis -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">What Happens During Photosynthesis?</h4>
+    <p class="text-gray-100">
+      In photosynthesis, plants take in carbon dioxide (CO₂) from the air and water (H₂O) from the soil. Using energy from sunlight, they convert these into glucose (a type of sugar) and oxygen (O₂). The glucose provides energy for the plant, and the oxygen is released into the air.
+    </p>
+  </div>
+
+  <!-- Photosynthesis Equation -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Photosynthesis Equation</h4>
+    <p class="text-gray-100 mb-2">
+      The overall chemical equation for photosynthesis is:
+    </p>
+    <p class="text-green-300 font-mono bg-gray-800 px-4 py-2 rounded shadow inline-block text-sm">
+      6CO₂ + 6H₂O + light energy → C₆H₁₂O₆ + 6O₂
+    </p>
+    <p class="text-gray-100 mt-3">
+      This means six molecules of carbon dioxide and six molecules of water, with sunlight, produce one molecule of glucose and six molecules of oxygen.
+    </p>
+  </div>
+
+  <!-- Where It Happens -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Where Does Photosynthesis Occur?</h4>
+    <p class="text-gray-100 mb-4">
+      Photosynthesis mainly occurs in the <strong>leaves</strong> of plants. Inside leaf cells are structures called <strong>chloroplasts</strong>, which contain a green pigment called <strong>chlorophyll</strong>. Chlorophyll captures sunlight energy, which drives the process.
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-100">
+      <li><strong>Chloroplast:</strong> Organelle where photosynthesis happens.</li>
+      <li><strong>Chlorophyll:</strong> Pigment that absorbs sunlight (gives plants their green color).</li>
+    </ul>
+  </div>
+
+  <!-- Two Stages of Photosynthesis -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.7s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Stages of Photosynthesis</h4>
+    <p class="text-gray-100 mb-2">
+      Photosynthesis takes place in two main stages:
+    </p>
+    <ol class="list-decimal pl-6 space-y-2 text-gray-100">
+      <li>
+        <strong>Light-dependent reactions:</strong> These occur in the thylakoid membranes inside chloroplasts. Sunlight energy is used to split water molecules, releasing oxygen and generating energy-rich molecules (ATP and NADPH).
+      </li>
+      <li>
+        <strong>Light-independent reactions (Calvin cycle):</strong> These occur in the stroma of the chloroplast. The ATP and NADPH from the first stage are used to convert carbon dioxide into glucose.
+      </li>
+    </ol>
+  </div>
+
+  <!-- Importance of Photosynthesis -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.8s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Why Is Photosynthesis Important?</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-100">
+      <li>It provides food (glucose) for plants and other organisms that eat plants.</li>
+      <li>It produces oxygen, which is essential for most life forms on Earth.</li>
+      <li>It removes carbon dioxide from the atmosphere, helping to balance the Earth's climate.</li>
+      <li>It forms the base of most food chains and ecosystems.</li>
+    </ul>
+  </div>
+
+    <!-- Diagram Placeholder -->
+    <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.9s;">
+    <figure class="bg-gray-900 p-4 rounded-lg shadow-lg flex justify-center">
+        <img src="bio/photosynthesis.svg" 
+            alt="Diagram of the Photosynthesis process" 
+            class="max-w-[500px] w-full h-auto border border-gray-700 rounded" />
+    </figure>
+    <figcaption class="text-sm text-gray-400 text-center mt-2">
+        A diagram showing how sunlight, water, and carbon dioxide produce glucose and oxygen in plant leaves.
+    </figcaption>
+    </div>
+
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-8 fade-in" style="animation-delay: 1s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-100">
+      <li>Photosynthesis is how plants use sunlight to make their own food.</li>
+      <li>It takes place in chloroplasts, using chlorophyll to capture light energy.</li>
+      <li>The main products are glucose (for energy) and oxygen (released into the air).</li>
+      <li>Photosynthesis supports most life on Earth by providing food and oxygen.</li>
+    </ul>
+  </div>
+</section>
+
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+
+<section id="respiration" class="mb-16 mt-16" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-yellow-400 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    Respiration
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Respiration is the chemical process that takes place in all living cells. It breaks down glucose (sugar) to release energy that cells need to carry out their functions. Unlike breathing, which is a physical process, respiration is a chemical reaction that happens inside cells.
+  </p>
+
+  <!-- Types of Respiration -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Types of Respiration</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-yellow-300 text-gray-200">
+      <li><strong>Aerobic Respiration:</strong> Uses oxygen to break down glucose and release energy. It is the most efficient form of respiration.</li>
+      <li><strong>Anaerobic Respiration:</strong> Happens without oxygen. It produces less energy and occurs in some microorganisms and in human muscles during intense exercise.</li>
+    </ul>
+  </div>
+
+  <!-- Aerobic Respiration Equation -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Aerobic Respiration Equation</h4>
+    <p class="text-gray-100 mb-2">
+      The word equation for aerobic respiration is:
+    </p>
+    <p class="text-center text-lg text-green-300 font-semibold">
+      Glucose + Oxygen → Carbon Dioxide + Water + Energy (ATP)
+    </p>
+  </div>
+
+  <!-- Anaerobic Respiration -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Anaerobic Respiration</h4>
+    <p class="text-gray-100 mb-4">
+      In humans, anaerobic respiration occurs when there is not enough oxygen, such as during heavy exercise. It produces:
+    </p>
+    <p class="text-center text-lg text-orange-300 font-semibold">
+      Glucose → Lactic Acid + Small Amount of Energy
+    </p>
+    <p class="text-gray-100 mt-4">
+      In yeast (a fungus), anaerobic respiration is called fermentation:
+    </p>
+    <p class="text-center text-lg text-orange-300 font-semibold">
+      Glucose → Ethanol + Carbon Dioxide + Energy
+    </p>
+  </div>
+
+  <!-- Importance of Respiration -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.7s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Why Is Respiration Important?</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-yellow-300 text-gray-200">
+      <li>Provides energy (in the form of ATP) for cells to function.</li>
+      <li>Supports growth, repair, and active transport in cells.</li>
+      <li>Allows muscle contraction and nerve impulse transmission.</li>
+    </ul>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-8 fade-in" style="animation-delay: 0.9s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-yellow-300 text-gray-100">
+      <li>Respiration releases energy from food in all living cells.</li>
+      <li>Aerobic respiration uses oxygen and produces lots of energy.</li>
+      <li>Anaerobic respiration occurs without oxygen and produces less energy.</li>
+      <li>The energy produced is used for essential life processes.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="cell-division" class="mb-16 mt-16" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-purple-400 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    Mitosis and Meiosis
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Cell division is essential for all living organisms. It allows for growth, repair, and reproduction. The two main types of cell division are <strong>mitosis</strong> and <strong>meiosis</strong>. Both involve the replication and division of cells, but they serve different purposes and occur in different cell types.
+  </p>
+
+  <!-- Mitosis Section -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Mitosis – Growth and Repair</h4>
+    <p class="text-gray-100 mb-4">
+      Mitosis produces two identical daughter cells, each with the same number of chromosomes as the parent cell. It is used for:
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-purple-300 text-gray-200">
+      <li>Growth of tissues</li>
+      <li>Repair of damaged cells</li>
+      <li>Asexual reproduction in some organisms</li>
+    </ul>
+    <p class="text-gray-100 mt-4">
+      The stages of mitosis are:
+    </p>
+    <ol class="list-decimal pl-6 space-y-1 marker:text-purple-300 text-gray-200">
+      <li><strong>Prophase:</strong> Chromosomes condense, spindle forms.</li>
+      <li><strong>Metaphase:</strong> Chromosomes line up at the cell’s equator.</li>
+      <li><strong>Anaphase:</strong> Chromatids are pulled apart to opposite poles.</li>
+      <li><strong>Telophase:</strong> New nuclear membranes form around each set of chromosomes.</li>
+      <li><strong>Cytokinesis:</strong> The cell splits into two identical cells.</li>
+    </ol>
+  </div>
+
+  <!-- Meiosis Section -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Meiosis – For Reproduction</h4>
+    <p class="text-gray-100 mb-4">
+      Meiosis is the process by which sex cells (gametes – sperm and egg) are formed. It results in four genetically different cells, each with half the number of chromosomes of the parent cell.
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-purple-300 text-gray-200">
+      <li>Occurs only in reproductive organs (testes and ovaries)</li>
+      <li>Enables sexual reproduction and genetic variation</li>
+      <li>Reduces chromosome number by half (haploid cells)</li>
+    </ul>
+    <p class="text-gray-100 mt-4">
+      Meiosis involves two cell divisions:
+    </p>
+    <ul class="list-disc pl-6 space-y-1 marker:text-purple-300 text-gray-200">
+      <li><strong>Meiosis I:</strong> Homologous chromosomes separate</li>
+      <li><strong>Meiosis II:</strong> Chromatids separate into four daughter cells</li>
+    </ul>
+  </div>
+
+  <!-- Comparison Table -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-4">Mitosis vs Meiosis</h4>
+    <div class="overflow-x-auto">
+      <table class="min-w-full text-sm text-gray-100 border border-gray-700">
+        <thead class="bg-gray-800 text-gray-300">
+          <tr>
+            <th class="py-2 px-4 border-b border-gray-700 text-left">Feature</th>
+            <th class="py-2 px-4 border-b border-gray-700 text-left">Mitosis</th>
+            <th class="py-2 px-4 border-b border-gray-700 text-left">Meiosis</th>
+          </tr>
+        </thead>
+        <tbody class="bg-gray-900">
+          <tr>
+            <td class="py-2 px-4 border-b border-gray-700">Number of divisions</td>
+            <td class="py-2 px-4 border-b border-gray-700">1</td>
+            <td class="py-2 px-4 border-b border-gray-700">2</td>
+          </tr>
+          <tr>
+            <td class="py-2 px-4 border-b border-gray-700">Cells produced</td>
+            <td class="py-2 px-4 border-b border-gray-700">2 identical cells</td>
+            <td class="py-2 px-4 border-b border-gray-700">4 genetically different cells</td>
+          </tr>
+          <tr>
+            <td class="py-2 px-4 border-b border-gray-700">Purpose</td>
+            <td class="py-2 px-4 border-b border-gray-700">Growth and repair</td>
+            <td class="py-2 px-4 border-b border-gray-700">Sexual reproduction</td>
+          </tr>
+          <tr>
+            <td class="py-2 px-4 border-b border-gray-700">Chromosome number</td>
+            <td class="py-2 px-4 border-b border-gray-700">Same as parent (diploid)</td>
+            <td class="py-2 px-4 border-b border-gray-700">Half of parent (haploid)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+<section id="nervous-system" class="mb-16 mt-16" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-blue-400 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    The Nervous System
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    The nervous system controls and coordinates body activities. It detects changes in the environment (stimuli), processes this information, and triggers appropriate responses. It enables quick communication between different parts of the body using electrical signals.
+  </p>
+
+  <!-- Main Parts of the Nervous System -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Main Parts</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-blue-300 text-gray-200">
+      <li><strong>Central Nervous System (CNS):</strong> Made up of the brain and spinal cord. It processes information and makes decisions.</li>
+      <li><strong>Peripheral Nervous System (PNS):</strong> All the nerves outside the CNS that carry messages to and from the body.</li>
+    </ul>
+  </div>
+
+  <!-- Types of Neurons -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Types of Neurons</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-blue-300 text-gray-200">
+      <li><strong>Sensory Neurons:</strong> Carry information from receptors (e.g., in skin) to the CNS.</li>
+      <li><strong>Relay Neurons:</strong> Found in the CNS; connect sensory and motor neurons.</li>
+      <li><strong>Motor Neurons:</strong> Carry signals from the CNS to effectors like muscles or glands.</li>
+    </ul>
+  </div>
+
+  <!-- Reflex Arc -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Reflex Actions</h4>
+    <p class="text-gray-100 mb-4">
+      Reflexes are automatic and rapid responses to stimuli that help protect the body from harm. The path followed by a nerve signal in a reflex is called a <strong>reflex arc</strong>.
+    </p>
+    <ol class="list-decimal pl-6 space-y-1 marker:text-blue-300 text-gray-200">
+      <li>Stimulus detected by receptor</li>
+      <li>Sensory neuron sends signal to spinal cord</li>
+      <li>Relay neuron processes and relays message</li>
+      <li>Motor neuron sends signal to effector</li>
+      <li>Effector (e.g. muscle) causes response</li>
+    </ol>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-8 fade-in" style="animation-delay: 0.8s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-blue-300 text-gray-100">
+      <li>The nervous system enables quick communication in the body.</li>
+      <li>The CNS processes signals; the PNS carries them to and from the rest of the body.</li>
+      <li>Reflexes protect the body by allowing fast, automatic responses.</li>
+      <li>Neurons transmit electrical impulses through the nervous system.</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+<section id="circulatory-system" class="mb-16 mt-16" data-aos="fade-up">
+  <h3 class="text-3xl font-semibold text-red-400 tracking-tight mb-4 fade-in" style="animation-delay: 0.2s;">
+    The Circulatory System
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    The circulatory system is responsible for the transport of substances around the body. It delivers oxygen and nutrients to cells and removes carbon dioxide and waste products. This system also plays a key role in regulating body temperature and defending against disease.
+  </p>
+
+  <!-- Main Components -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Main Components</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-red-300 text-gray-200">
+      <li><strong>Heart:</strong> A muscular pump that keeps blood moving through the vessels.</li>
+      <li><strong>Blood Vessels:</strong> Tubes that carry blood (arteries, veins, and capillaries).</li>
+      <li><strong>Blood:</strong> A fluid containing red blood cells, white blood cells, platelets, and plasma.</li>
+    </ul>
+  </div>
+
+  <!-- The Heart -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-2">The Heart</h4>
+    <p class="text-gray-100 mb-4">
+      The heart is a double pump with four chambers: the right atrium and ventricle pump deoxygenated blood to the lungs, while the left atrium and ventricle pump oxygenated blood to the rest of the body.
+    </p>
+    <ul class="list-disc pl-6 space-y-1 marker:text-red-300 text-gray-200">
+      <li>Right side → lungs (pulmonary circulation)</li>
+      <li>Left side → body (systemic circulation)</li>
+    </ul>
+  </div>
+
+  <!-- Blood Vessels -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Types of Blood Vessels</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-red-300 text-gray-200">
+      <li><strong>Arteries:</strong> Carry blood away from the heart; thick, muscular walls.</li>
+      <li><strong>Veins:</strong> Carry blood back to the heart; have valves to prevent backflow.</li>
+      <li><strong>Capillaries:</strong> Tiny vessels where exchange of substances occurs between blood and tissues.</li>
+    </ul>
+  </div>
+
+  <!-- Blood Composition -->
+  <div class="glass p-6 rounded-lg mb-6 fade-in" style="animation-delay: 0.7s;">
+    <h4 class="text-xl font-semibold text-white mb-2">What’s in Blood?</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-red-300 text-gray-200">
+      <li><strong>Red Blood Cells:</strong> Carry oxygen using hemoglobin.</li>
+      <li><strong>White Blood Cells:</strong> Defend the body against infection.</li>
+      <li><strong>Platelets:</strong> Help the blood clot at wounds.</li>
+      <li><strong>Plasma:</strong> A yellowish fluid that carries nutrients, hormones, and waste.</li>
+    </ul>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-8 fade-in" style="animation-delay: 0.9s;">
+    <h4 class="text-xl font-semibold text-white mb-2">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-red-300 text-gray-100">
+      <li>The circulatory system transports essential substances to and from cells.</li>
+      <li>The heart pumps blood through two separate circuits: lungs and body.</li>
+      <li>Arteries, veins, and capillaries each serve different roles in circulation.</li>
+      <li>Blood is composed of cells and plasma with specific transport and defense roles.</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+<section id="immune-system" class="mb-20 mt-20" data-aos="fade-up">
+  <h3 class="text-3xl font-bold text-green-400 tracking-tight mb-6 fade-in" style="animation-delay: 0.2s;">
+    The Immune System
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    The immune system is a complex network of cells, tissues, and organs that protects the body from infections and foreign invaders. It distinguishes between the body’s own cells and harmful pathogens such as bacteria, viruses, and parasites, and works to neutralize or eliminate them.
+  </p>
+
+  <!-- Structure of the Immune System -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Main Components of the Immune System</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>White Blood Cells (Leukocytes):</strong> Patrol the body and identify threats.</li>
+      <li><strong>Lymphatic System:</strong> Includes lymph nodes, vessels, and the spleen — helps circulate immune cells and filter foreign materials.</li>
+      <li><strong>Bone Marrow:</strong> Produces all blood cells, including immune cells.</li>
+      <li><strong>Thymus:</strong> Where T cells mature before entering the bloodstream.</li>
+    </ul>
+  </div>
+
+  <!-- Innate vs Adaptive Immunity -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Two Main Types of Immunity</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Innate Immunity:</strong> The body’s immediate and general defense system. Includes skin, mucus, stomach acid, and non-specific white blood cells like phagocytes.</li>
+      <li><strong>Adaptive Immunity:</strong> A targeted response developed after exposure to a specific pathogen. It involves lymphocytes and leads to long-term protection through memory cells.</li>
+    </ul>
+  </div>
+
+  <!-- White Blood Cells -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Types of White Blood Cells</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Phagocytes:</strong> These cells engulf and digest pathogens in a process called <em>phagocytosis</em>.</li>
+      <li><strong>Lymphocytes:</strong> Two main types:
+        <ul class="list-disc pl-6 mt-2 marker:text-green-400 text-gray-300">
+          <li><strong>B cells:</strong> Produce antibodies that target specific pathogens.</li>
+          <li><strong>T cells:</strong> Destroy infected cells and help activate other immune responses.</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Antibodies -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.7s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Antibodies and Antigens</h4>
+    <p class="text-gray-100 mb-2">
+      <strong>Antigens</strong> are proteins found on the surface of pathogens that are recognized by the immune system. 
+      <strong>Antibodies</strong> are proteins made by B cells that specifically bind to antigens and help neutralize or destroy the pathogen.
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li>Each antibody is specific to one antigen — like a lock and key.</li>
+      <li>Once attached, antibodies can neutralize the pathogen or mark it for destruction by other immune cells.</li>
+    </ul>
+  </div>
+
+  <!-- Memory Cells -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.75s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Memory Cells</h4>
+    <p class="text-gray-100">
+      After an infection, some B and T cells become memory cells. These cells remain in the body and respond quickly if the same pathogen returns, often destroying it before it causes symptoms. This is the basis for long-lasting immunity.
+    </p>
+  </div>
+
+  <!-- Vaccination -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.8s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Vaccination</h4>
+    <p class="text-gray-100 mb-2">
+      Vaccines introduce a harmless version of a pathogen (or its antigen) to stimulate the immune system without causing disease.
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li>Triggers the production of antibodies and memory cells.</li>
+      <li>Prepares the immune system for faster, stronger responses in future encounters.</li>
+      <li>Helps protect the wider community through herd immunity.</li>
+    </ul>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-10 fade-in" style="animation-delay: 0.9s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-100">
+      <li>The immune system protects the body against pathogens through physical barriers, cells, and antibodies.</li>
+      <li>Innate immunity offers fast, general protection, while adaptive immunity provides specific and long-term defense.</li>
+      <li>White blood cells such as phagocytes and lymphocytes are vital in fighting infections.</li>
+      <li>Vaccines help the immune system prepare for future threats without causing disease.</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+<section id="homeostasis" class="mb-20 mt-20" data-aos="fade-up">
+  <h3 class="text-3xl font-bold text-green-400 tracking-tight mb-6 fade-in" style="animation-delay: 0.2s;">
+    Homeostasis
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Homeostasis is the process by which the body maintains a stable internal environment despite changes in the external surroundings. It ensures that conditions such as body temperature, blood sugar, and water levels remain within optimal ranges to support proper functioning of cells and organs.
+  </p>
+
+  <!-- Key Conditions -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-3">What Homeostasis Controls</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Body Temperature:</strong> Maintained around 37°C for enzyme activity and cell processes.</li>
+      <li><strong>Blood Glucose Levels:</strong> Regulated to provide energy without causing damage.</li>
+      <li><strong>Water Balance:</strong> Prevents dehydration or water overload in cells.</li>
+      <li><strong>pH of the Blood:</strong> Kept near neutral to protect enzyme function and cell structure.</li>
+    </ul>
+  </div>
+
+  <!-- Control Systems -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-3">The Control System</h4>
+    <p class="text-gray-100 mb-2">
+      The body uses a coordinated system of sensors and effectors to maintain balance:
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Receptors:</strong> Detect changes in the environment (e.g. skin detects heat).</li>
+      <li><strong>Coordination Centres:</strong> The brain, spinal cord, or pancreas process information.</li>
+      <li><strong>Effectors:</strong> Muscles or glands that carry out responses to restore balance.</li>
+    </ul>
+  </div>
+
+  <!-- Negative Feedback -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Negative Feedback</h4>
+    <p class="text-gray-100">
+      Most homeostatic processes use <strong>negative feedback</strong>. When a condition changes too far from normal, the body automatically triggers a response to bring it back to the ideal level. Once normal conditions are restored, the response stops.
+    </p>
+  </div>
+
+  <!-- Example: Temperature Regulation -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.7s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Example: Controlling Body Temperature</h4>
+    <p class="text-gray-100 mb-2">The hypothalamus in the brain controls body temperature:</p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>If too hot:</strong> Blood vessels widen (vasodilation), sweat glands release sweat to cool down.</li>
+      <li><strong>If too cold:</strong> Blood vessels narrow (vasoconstriction), muscles shiver to generate heat.</li>
+    </ul>
+  </div>
+
+  <!-- Example: Blood Sugar Regulation -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.75s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Example: Regulating Blood Glucose</h4>
+    <p class="text-gray-100 mb-2">Controlled by the pancreas using two hormones:</p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Insulin:</strong> Lowers blood sugar by helping glucose enter cells and storing it as glycogen in the liver.</li>
+      <li><strong>Glucagon:</strong> Raises blood sugar by converting glycogen back to glucose and releasing it into the blood.</li>
+    </ul>
+  </div>
+
+  <!-- Diagram -->
+  <div class="glass p-6 rounded-lg fade-in" style="animation-delay: 0.8s;">
+    <figure class="bg-gray-900 p-4 rounded-lg shadow-lg flex justify-center">
+      <img src="bio/homeostasis_diagram.svg" 
+           alt="Homeostasis Diagram" 
+           class="max-w-[650px] w-full h-auto border border-gray-700 rounded" />
+    </figure>
+    <figcaption class="text-sm text-gray-400 text-center mt-2">
+      Diagram showing negative feedback and temperature regulation in homeostasis.
+    </figcaption>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-10 fade-in" style="animation-delay: 0.85s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-100">
+      <li>Homeostasis keeps internal body conditions stable and suitable for life.</li>
+      <li>It involves detecting changes, processing them, and triggering responses through effectors.</li>
+      <li>Negative feedback helps maintain balance by reversing the direction of changes.</li>
+      <li>Examples include regulation of temperature, blood glucose, and water levels.</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+<section id="endocrine-system" class="mb-20 mt-20" data-aos="fade-up">
+  <h3 class="text-3xl font-bold text-green-400 tracking-tight mb-6 fade-in" style="animation-delay: 0.2s;">
+    The Endocrine System
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    The endocrine system is a collection of glands that secrete chemical messengers called hormones. These hormones travel through the bloodstream to target organs and regulate processes such as growth, metabolism, reproduction, and mood. Unlike the nervous system, which works quickly through electrical impulses, the endocrine system works more slowly but has long-lasting effects.
+  </p>
+
+  <!-- What are Hormones -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-3">What Are Hormones?</h4>
+    <p class="text-gray-100 mb-2">
+      Hormones are chemical messengers produced by endocrine glands. They are released into the blood and affect specific target cells that have receptors for that hormone.
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li>Travel through the bloodstream to organs and tissues.</li>
+      <li>Only affect cells with the right receptors (target cells).</li>
+      <li>Control many body functions like metabolism, growth, mood, and reproduction.</li>
+    </ul>
+  </div>
+
+  <!-- Major Glands -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Major Endocrine Glands and Hormones</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Pituitary Gland:</strong> Known as the "master gland", it controls other glands. Produces growth hormone, FSH, LH, and ADH.</li>
+      <li><strong>Thyroid Gland:</strong> Produces thyroxine which regulates metabolism and energy use.</li>
+      <li><strong>Pancreas:</strong> Produces insulin and glucagon to control blood glucose levels.</li>
+      <li><strong>Adrenal Glands:</strong> Produce adrenaline to prepare the body for "fight or flight".</li>
+      <li><strong>Ovaries:</strong> Produce estrogen and progesterone to control the menstrual cycle and pregnancy.</li>
+      <li><strong>Testes:</strong> Produce testosterone to control male characteristics and sperm production.</li>
+    </ul>
+  </div>
+
+  <!-- Hormonal vs Nervous System -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Hormones vs Nerves</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Hormonal responses:</strong> Slower, travel in the blood, long-lasting.</li>
+      <li><strong>Nervous responses:</strong> Fast, travel as impulses along nerves, short-term effects.</li>
+    </ul>
+  </div>
+
+  <!-- Negative Feedback -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.65s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Negative Feedback in Hormonal Control</h4>
+    <p class="text-gray-100">
+      Negative feedback is a control mechanism that ensures hormone levels remain within a normal range. When a hormone level rises too high or falls too low, signals are sent to reduce or increase production, restoring balance.
+    </p>
+  </div>
+
+  <!-- Example: Thyroxine -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.7s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Example: Control of Thyroxine</h4>
+    <p class="text-gray-100 mb-2">Thyroxine regulates metabolic rate. Its release is controlled by a feedback loop:</p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li>Low thyroxine levels → pituitary gland releases TSH → thyroid releases more thyroxine.</li>
+      <li>High thyroxine levels → pituitary reduces TSH → thyroxine levels fall to normal.</li>
+    </ul>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-10 fade-in" style="animation-delay: 0.8s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-100">
+      <li>The endocrine system uses hormones to regulate body functions slowly but steadily.</li>
+      <li>Each hormone is specific to a target organ or tissue.</li>
+      <li>Major glands include the pituitary, thyroid, pancreas, adrenal glands, ovaries, and testes.</li>
+      <li>Negative feedback helps keep hormone levels balanced.</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+<section id="human-reproduction" class="mb-20 mt-20" data-aos="fade-up">
+  <h3 class="text-3xl font-bold text-green-400 tracking-tight mb-6 fade-in" style="animation-delay: 0.2s;">
+    Human Reproduction
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Human reproduction is a biological process by which humans produce offspring. It involves specialized cells (gametes), organs, and hormonal control. This process ensures the continuation of the species and involves both the male and female reproductive systems.
+  </p>
+
+  <!-- Male System -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-3">The Male Reproductive System</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Testes:</strong> Produce sperm and testosterone (male sex hormone).</li>
+      <li><strong>Sperm Ducts:</strong> Transport sperm from the testes to the urethra.</li>
+      <li><strong>Urethra:</strong> Carries sperm through the penis during ejaculation.</li>
+      <li><strong>Penis:</strong> Organ that delivers sperm into the female's reproductive system.</li>
+    </ul>
+  </div>
+
+  <!-- Female System -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-3">The Female Reproductive System</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Ovaries:</strong> Release eggs (ova) and produce estrogen and progesterone.</li>
+      <li><strong>Oviducts (Fallopian Tubes):</strong> Where fertilization usually occurs.</li>
+      <li><strong>Uterus (Womb):</strong> Where a fertilized egg implants and grows during pregnancy.</li>
+      <li><strong>Cervix:</strong> Narrow opening between the uterus and vagina.</li>
+      <li><strong>Vagina:</strong> Receives sperm and acts as the birth canal.</li>
+    </ul>
+  </div>
+
+  <!-- Fertilisation -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Fertilisation</h4>
+    <p class="text-gray-100">
+      Fertilisation occurs when a sperm cell fuses with an egg cell to form a zygote. This usually takes place in the oviduct. The zygote undergoes cell division to form an embryo, which implants into the uterus wall.
+    </p>
+  </div>
+
+  <!-- Menstrual Cycle -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.65s;">
+    <h4 class="text-xl font-semibold text-white mb-3">The Menstrual Cycle</h4>
+    <p class="text-gray-100 mb-2">
+      The menstrual cycle prepares a woman’s body for pregnancy. It typically lasts about 28 days and is controlled by hormones.
+    </p>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>FSH:</strong> Stimulates egg development and oestrogen production.</li>
+      <li><strong>LH:</strong> Triggers ovulation (release of the egg).</li>
+      <li><strong>Oestrogen:</strong> Thickens the uterus lining.</li>
+      <li><strong>Progesterone:</strong> Maintains the uterus lining.</li>
+    </ul>
+  </div>
+
+  <!-- Pregnancy -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.7s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Pregnancy and Development</h4>
+    <p class="text-gray-100">
+      After fertilisation, the embryo develops into a fetus inside the uterus. The placenta forms to exchange nutrients, gases, and waste between mother and baby. A protective fluid called amniotic fluid cushions the baby.
+    </p>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-10 fade-in" style="animation-delay: 0.8s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-100">
+      <li>Human reproduction involves male and female reproductive organs and sex cells.</li>
+      <li>Fertilisation forms a zygote, which develops into a fetus inside the uterus.</li>
+      <li>The menstrual cycle is hormone-controlled and prepares for potential pregnancy.</li>
+    </ul>
+  </div>
+</section>
+
+<hr class="border-t border-gray-300 dark:border-gray-700">
+
+<section id="enzymes" class="mb-20 mt-20" data-aos="fade-up">
+  <h3 class="text-3xl font-bold text-green-400 tracking-tight mb-6 fade-in" style="animation-delay: 0.2s;">
+    Enzymes
+  </h3>
+
+  <p class="text-gray-100 text-base leading-relaxed mb-6 fade-in" style="animation-delay: 0.3s;">
+    Enzymes are biological catalysts made of proteins that speed up chemical reactions in living organisms without being used up in the process. They are vital for digestion, respiration, DNA replication, and many other biological functions. Each enzyme is highly specific to its substrate.
+  </p>
+
+  <!-- Structure -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.4s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Structure and Function</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Active Site:</strong> The specific region on an enzyme where the substrate binds.</li>
+      <li><strong>Substrate:</strong> The molecule upon which the enzyme acts.</li>
+      <li><strong>Enzyme-Substrate Complex:</strong> The temporary structure formed when an enzyme binds to its substrate.</li>
+    </ul>
+  </div>
+
+  <!-- Lock and Key -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.5s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Lock and Key Model</h4>
+    <p class="text-gray-100">
+      The lock and key model describes how enzymes work. The enzyme (lock) has a specific shape into which the substrate (key) fits perfectly. This model explains the high specificity of enzymes.
+    </p>
+  </div>
+
+  <!-- Factors Affecting Enzymes -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.6s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Factors Affecting Enzyme Activity</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Temperature:</strong> Increases reaction rate up to an optimum point. High temperatures can denature enzymes.</li>
+      <li><strong>pH:</strong> Each enzyme has an optimal pH range. Outside this range, the enzyme may become denatured.</li>
+      <li><strong>Substrate Concentration:</strong> More substrate increases activity until all enzyme active sites are in use.</li>
+      <li><strong>Enzyme Concentration:</strong> More enzymes generally increase the rate if substrate is available.</li>
+    </ul>
+  </div>
+
+  <!-- Enzyme Denaturation -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.65s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Denaturation</h4>
+    <p class="text-gray-100">
+      Denaturation occurs when an enzyme's structure is altered so its active site no longer fits the substrate. This can be caused by extreme heat or pH and results in the enzyme becoming inactive.
+    </p>
+  </div>
+
+  <!-- Examples of Enzymes -->
+  <div class="glass p-6 rounded-lg mb-8 fade-in" style="animation-delay: 0.7s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Examples of Enzymes</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-200">
+      <li><strong>Amylase:</strong> Breaks down starch into sugars. Found in saliva and pancreas.</li>
+      <li><strong>Protease:</strong> Breaks down proteins into amino acids. Found in the stomach and pancreas.</li>
+      <li><strong>Lipase:</strong> Breaks down fats into fatty acids and glycerol. Found in the pancreas.</li>
+      <li><strong>DNA Polymerase:</strong> Helps synthesize new strands of DNA during replication.</li>
+    </ul>
+  </div>
+
+  <!-- Summary -->
+  <div class="glass p-6 rounded-lg mt-10 fade-in" style="animation-delay: 0.85s;">
+    <h4 class="text-xl font-semibold text-white mb-3">Summary</h4>
+    <ul class="list-disc pl-6 space-y-2 marker:text-green-300 text-gray-100">
+      <li>Enzymes are specific biological catalysts that speed up reactions.</li>
+      <li>They work best under optimal temperature and pH conditions.</li>
+      <li>Denaturation makes enzymes lose their shape and function.</li>
+      <li>Different enzymes work on different types of molecules like starch, protein, and fat.</li>
+    </ul>
+  </div>
+</section>
+
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="py-6 text-center text-gray-500" data-aos="fade-up">
+    ©2025 Asphy VM Documentation
+  </footer>
+
+  <!-- Scripts -->
+  <script type="module" src="https://unpkg.com/@material/web/all.js?module"></script>
+  <script>
+    // Initialize AOS
+    AOS.init({
+      duration: 800,
+      easing: 'ease-out-quad',
+      once: true
+    });
+
+    // GSAP and ScrollTrigger
+    gsap.registerPlugin(ScrollTrigger);
+
+    // Hero animation
+    gsap.from(".hero-text", {
+      y: 30,
+      opacity: 0,
+      duration: 1,
+      ease: "power2.out"
+    });
+
+    // Section animations
+    document.querySelectorAll("section").forEach(section => {
+      gsap.from(section.children, {
+        y: 20,
+        opacity: 0,
+        stagger: 0.1,
+        duration: 0.8,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: section,
+          start: "top 85%",
+          toggleActions: "play none none reset"
+        }
+      });
+    });
+
+    const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  let stars = [];
+
+  function resizeCanvas() {
+    canvas.width = innerWidth;
+    canvas.height = innerHeight;
+    // Create ~80 stars
+    stars = Array.from({ length: 80 }, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height,
+      size: Math.random() * 2 + 1,           // 1–3px
+      baseAlpha: Math.random() * 0.5 + 0.2,  // 0.2–0.7
+      phase: Math.random() * Math.PI * 2,    // for twinkle timing
+      speed: 0.001 + Math.random() * 0.002   // twinkle speed
+    }));
+  }
+
+  // Draw a 5‑point star at (x,y)
+  function drawStar(x, y, r, alpha) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      ctx.lineTo(
+        Math.cos((18 + i * 72) / 180 * Math.PI) * r,
+        -Math.sin((18 + i * 72) / 180 * Math.PI) * r
+      );
+      ctx.lineTo(
+        Math.cos((54 + i * 72) / 180 * Math.PI) * (r / 2),
+        -Math.sin((54 + i * 72) / 180 * Math.PI) * (r / 2)
+      );
+    }
+    ctx.closePath();
+    ctx.fillStyle = `rgba(77, 208, 225, ${alpha})`;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function animateStars(timestamp) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    stars.forEach(star => {
+      // Update twinkle phase
+      star.phase += star.speed;
+      const twinkle = (Math.sin(star.phase) + 1) / 2; // 0 → 1
+      const alpha = star.baseAlpha * (0.5 + twinkle * 0.5);
+
+      drawStar(star.x, star.y, star.size, alpha);
+    });
+
+    requestAnimationFrame(animateStars);
+  }
+
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+  requestAnimationFrame(animateStars);
+
+  document.querySelectorAll('.animate-dropdown').forEach((details) => {
+    const summary = details.querySelector('summary');
+    const content = details.querySelector('.dropdown-content');
+
+    content.style.overflow = 'hidden';
+    content.style.maxHeight = '0';
+    content.style.transition = 'max-height 0.4s ease';
+
+    let isOpen = false;
+
+    summary.addEventListener('click', (e) => {
+      e.preventDefault(); // Prevent default toggle
+
+      isOpen = !isOpen;
+      if (isOpen) {
+        details.setAttribute('open', '');
+        const height = content.scrollHeight + 'px';
+        content.style.maxHeight = height;
+      } else {
+        content.style.maxHeight = '0';
+        setTimeout(() => {
+          details.removeAttribute('open');
+        }, 400); // match transition duration
+      }
+    });
+  });
+
+  </script>
+</body>
+</html>
